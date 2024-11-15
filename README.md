@@ -5,3 +5,13 @@ This repository contains code to train ReRAW to convert RGB images into sensor s
 <div align="center">
   <img src="media/reraw-schematic.png" width="100%" /> 
 </div>
+
+## Training ReRAW
+
+### 1. Stratified Sampling
+
+### 2. Training
+
+## Running ReRAW
+
+This shows how to convert a folder of RGB images into camera-specific RAW, using a previously trained ReRAW model.
