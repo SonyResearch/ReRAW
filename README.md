@@ -1,4 +1,4 @@
-# ReRAW - converting large RGB datasets to RAW 
+# ReRAW - ReRAW: RAW-from-RGB Image Reconstruction via Stratified Sampling for Efficient Object Detection on the Edge
 
 This repository contains code to train ReRAW to convert RGB images into sensor specific RAW.
 
