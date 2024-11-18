@@ -22,6 +22,8 @@ Then run:
 python3 stratified_sampling.py -c ./config/cfg_example.py -n 2
 ```
 
+where `-n` denotes the number of parallel workers.
+
 ### 2. Training
 With the `rgb-context`, `rgb-sample` and `rggb-target` folders are populated, run:
 
@@ -37,7 +39,7 @@ The training will run and save the checkpoint at a timestamp folder in `./output
 To run ReRAW and convert a folder of RGB images into sensor-specific RAW, run:
 
 ```bash
-python3 convert.py -g 0 -f ./outputs/1731913987 -i ./example/rgb -o ./example/converted -n 2 -r True
+python3 convert.py -g 0 -f ./outputs/1731913987 -i ./example/rgb -o ./example/converted -n 2 -r False
 ```
 
 where:
