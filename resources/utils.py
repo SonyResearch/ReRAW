@@ -208,18 +208,3 @@ def load_cfg(cfg_path):
 
     return dataset, cfg_sample, cfg_train
 
-
-def resize_image(img, target_height, make_even=True):
-    height, width = img.shape[:2]
-    aspect_ratio = width / height
-    new_width = int(np.floor(target_height * aspect_ratio))
-    # Ensure new dimensions are divisible by 2
-
-    if new_width % 2 != 0 and make_even:
-        new_width +=1
-
-    resized_img = cv2.resize(img, (new_width, target_height), interpolation=cv2.INTER_AREA)
-
-    return resized_img
-
-
