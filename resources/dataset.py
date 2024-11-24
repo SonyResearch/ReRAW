@@ -54,6 +54,7 @@ class DatasetSamples(Dataset):
         target = self.transform(target)
 
         targets = []
+        
         for gamma in self.gammas:
             targets.append(torch.pow(target, gamma))
 
