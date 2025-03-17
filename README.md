@@ -1,4 +1,6 @@
-# ReRAW - ReRAW: RAW-from-RGB Image Reconstruction via Stratified Sampling for Efficient Object Detection on the Edge
+# ReRAW: RGB-to-RAW Image Reconstruction via Stratified Sampling for Efficient Object Detection on the Edge
+
+(27.02.2025) ReRAW was accepted at CVPR2025! 🚀
 
 This repository contains code to train ReRAW to convert RGB images into sensor specific RAW.
 
@@ -49,6 +51,7 @@ where:
 | -f | Model output folder. |
 | -i | RGB input folder. |
 | -o | Output RGGB folder.  |
+| -n | No of parallel workers.  |
 | -r | Convert RGGB to RGB for visualisation. |
 
 
