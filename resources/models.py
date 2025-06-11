@@ -31,6 +31,8 @@ class ReRAW(nn.Module):
 
         self.global_context_encoder = GlobalContextModule(hidden_size)
         self.gamma_scaling_encoder = GlobalContextModule(len(self.gammas))
+        # 本质上都是resnet换掉fc layer
+        
         self.softmax = nn.Softmax(dim=1)
 
         self.heads = nn.ModuleList()
@@ -48,11 +50,13 @@ class ReRAW(nn.Module):
         b, c, h, w = global_img.size()
 
         global_features = self.global_context_encoder(global_img)
-        global_features = global_features.view(b, self.hidden_size, 1, 1)
-        global_features = global_features.repeat(1, 1, self.target_size[0], self.target_size[1])
+        # (b, 3, 128, 128)->(b,128)
+        global_features = global_features.view(b, self.hidden_size, 1, 1) #(b, 128, 1, 1)
+        global_features = global_features.repeat(1, 1, self.target_size[0], self.target_size[1]) #(b, 128, H/2, W/2)
+        
 
         x = self.color_reconstruction(x)
-        x = x * global_features
+        x = x * global_features # pointwise # element-wise multiplication
 
         scaling = self.gamma_scaling_encoder(global_img)
         scaling = self.softmax(scaling)
@@ -64,7 +68,7 @@ class ReRAW(nn.Module):
             scale = scaling[:, head_no : head_no + 1].view(b, 1, 1, 1).repeat(1, 4, 1, 1)
             y0 = torch.clip(head(x), 0, None)
             y += torch.pow(y0, 1 / self.gammas[head_no]) * scale
-            outputs.append(y0)
+            outputs.append(y0) #把每个 head 的输出（截断过负值）收集起来，方便后续分析或拼接。
         
         outputs = torch.cat(outputs, dim=1)
 
@@ -72,6 +76,10 @@ class ReRAW(nn.Module):
 
 
 class ColorReconstructionModule(nn.Module):
+    '''
+    Input: Sample RGB Patch [W+2, H+2, 3] --> Depthwise conv layer with 3*3 kernel, stride = 1, 3 groups, 96 channels
+    
+    '''
     def __init__(
         self,
         in_size=3,
@@ -91,37 +99,42 @@ class ColorReconstructionModule(nn.Module):
             nn.Sequential(
                 nn.Conv2d(
                     in_size,
-                    initial_size * in_size,
+                    initial_size * in_size, # 96
                     kernel_size=3,
                     stride=1,
                     padding=0,
                     bias=bias,
-                    padding_mode="reflect",
-                    groups=3,
+                    padding_mode="reflect", #如果padding>0,会进行镜像填充
+                    groups=3, #输入和输出的通道被分为groups组，每组之间独立卷积，互不影响
                 ),
-                act(val),
+                #### x: (W+2,H+2,3)->(W,H,96)
+                act(val), 
             )
         )
         self.layers.append(
             nn.Sequential(
-                nn.Conv2d(initial_size * in_size, hidden_size, kernel_size=2, stride=2, bias=bias),
+                nn.Conv2d(initial_size * in_size, # 96
+                          hidden_size, kernel_size=2, stride=2, bias=bias),
+                # x: (W, H, 96)->(W/2, H/2, 128)
                 act(val),
             )
         )
-        for i in range(n_layers-1):
+        for i in range(n_layers-1): # n_layer = 8 
             self.layers.append(
                 nn.Sequential(
                     nn.Conv2d(hidden_size, hidden_size, kernel_size=1, stride=1, bias=bias),
                     act(val),
                 )
             )
+            x:(W/2, H/2, 128)->(W/2, H/2, 128)
         self.layers.append(
             nn.Sequential(
                 nn.Conv2d(hidden_size, out_size, kernel_size=1, stride=1, bias=bias), act(val)
             )
         )
+        # (W/2, H/2, 128)->(W/2, H/2, 128)
 
-        for seq in self.layers:
+        for seq in self.layers: 
             for layer in seq.children():
                 if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
                     init.xavier_uniform_(layer.weight)
@@ -143,13 +156,17 @@ class GlobalContextModule(nn.Module):
         resnet = models.resnet18(pretrained=False)
         modules = list(resnet.children())[:-1]
         self.resnet = nn.Sequential(*modules)
-        self.fc = nn.Linear(512, out_size)
+        self.fc = nn.Linear(512, out_size) # 改了最后一层
         # self.act = nn.Sigmoid()
 
     def forward(self, x):
+        # x:(128, 128, 3)
         x = self.resnet(x)
+        # (128, 128, 3)->(512, 1, 1)
         x = torch.flatten(x, 1)
+        # (512, 1, 1)->(512,)
         x = self.fc(x)
+        #(512,)->(128,)
         # x = self.act(x)
         return x
 
@@ -200,10 +217,12 @@ class Head(nn.Module):
                         init.zeros_(layer.bias)
 
     def forward(self, x):
-        x = self.layers[0](x)
+        x = self.layers[0](x) #(W/2, H/2, 128) -> (W/2, H/2, hidden_size=128)
         for layer in self.layers[1:-1]:
             x = x + layer(x)
+        # (W/2, H/2, hidden_size=128)
         x = self.layers[-1](x)
+        # (W/2, H/2, 4)
         return x
 
 
