@@ -9,7 +9,7 @@ import rawpy
 
 def load_raw(file_path):
     with rawpy.imread(file_path) as raw:
-        raw_image = raw.raw_image_visible
+        raw_image = np.array(raw.raw_image_visible, copy=True)
 
     height, width = raw_image.shape
     r = raw_image[0:height:2, 0:width:2]

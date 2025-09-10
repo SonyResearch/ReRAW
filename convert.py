@@ -87,6 +87,8 @@ if __name__ == "__main__":
     output_path = args.output_path
     N_MODELS = int(args.n)
 
+    os.makedirs(output_path, exist_ok=True)
+
     cfg_path = os.path.join(checkpoint_folder, "cfg.py")
     model_path = os.path.join(checkpoint_folder, "best.pth")
 
@@ -119,7 +121,7 @@ if __name__ == "__main__":
     tasks = []
 
     for i, file_name in enumerate(input_files):
-        tasks.append([models[i % N_MODELS], file_name, input_path, output_path, cfg_sample, cfg_train, dataset, args.gpu, np.round(i/len(input_files),3)])
+        tasks.append([models[i % N_MODELS], file_name, input_path, output_path, cfg_sample, cfg_train, dataset, args.gpu, args.rgb])
 
         # if DEBUG:
         #     run_reraw(*tasks[-1])

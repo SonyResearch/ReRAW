@@ -35,7 +35,7 @@ def train(model, dataloader, testloader, save_path, cfg, writer):
     restart = cfg["restart"]
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-9)
     lr_scheduler = CosineAnnealingWarmRestarts(
-        optimizer, restart, eta_min=lr * lr_scaling, verbose=True
+        optimizer, restart, eta_min=lr * lr_scaling
     )
 
     criterion1 = hard_log_loss()
