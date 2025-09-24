@@ -41,7 +41,7 @@ The training will run and save the checkpoint at a timestamp folder in `./output
 To run ReRAW and convert a folder of RGB images into sensor-specific RAW, run:
 
 ```bash
-python3 convert.py -g 0 -f ./outputs/1731913987 -i ./example/rgb -o ./example/converted -n 2 -r
+python3 convert.py -g 0 -f ./outputs/1731913987 -i ./example/rgb -o ./example/converted -n 2 -r 1
 ```
 
 where:
